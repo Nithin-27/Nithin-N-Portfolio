@@ -50,7 +50,7 @@ const cardVariants = {
   hover: {
     y: -6,
     scale: 1.01,
-    boxShadow: '0 20px 40px rgba(82, 111, 103, 0.12), 0 0 0 1px rgba(111, 146, 136, 0.18)',
+    boxShadow: '0 20px 40px rgba(12, 39, 58, 0.14), 0 0 0 1px rgba(8, 127, 140, 0.18)',
     transition: { type: 'spring' as const, stiffness: 400, damping: 17 }
   }
 } as const;
