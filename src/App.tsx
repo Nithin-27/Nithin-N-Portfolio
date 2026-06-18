@@ -1,0 +1,616 @@
+import { FormEvent, useEffect, useState } from 'react';
+import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
+import {
+  ArrowUpRight,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Github,
+  Linkedin,
+  Mail,
+  MapPin,
+  Send,
+  Sparkles,
+  Award,
+  ExternalLink,
+  ArrowUp
+} from 'lucide-react';
+import {
+  caseStudies,
+  certifications,
+  contact,
+  experience,
+  metrics,
+  navItems,
+  resumeProjects,
+  skillGroups,
+  specialties,
+  toolbox,
+} from './data';
+
+// ── Motion Animation Variants ──
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    }
+  }
+} as const;
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 100, damping: 15 }
+  },
+  hover: {
+    y: -6,
+    scale: 1.01,
+    boxShadow: '0 20px 40px rgba(82, 111, 103, 0.12), 0 0 0 1px rgba(111, 146, 136, 0.18)',
+    transition: { type: 'spring' as const, stiffness: 400, damping: 17 }
+  }
+} as const;
+
+function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+  return (
+    <motion.div
+      className="section-header"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <span className="eyebrow">{eyebrow}</span>
+      <h2>{title}</h2>
+      {text ? <p>{text}</p> : null}
+    </motion.div>
+  );
+}
+
+function App() {
+  const [activeSection, setActiveSection] = useState('home');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
+
+  // Handle active navigation section highlight based on scroll position
+  useEffect(() => {
+    let frameId = 0;
+
+    const updateActiveSection = () => {
+      const scrollPosition = window.scrollY + 170;
+      let currentSection = navItems[0];
+
+      for (const item of navItems) {
+        const element = document.getElementById(item);
+        if (element && element.offsetTop <= scrollPosition) {
+          currentSection = item;
+        }
+      }
+
+      setActiveSection(currentSection);
+    };
+
+    const handleScroll = () => {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(updateActiveSection);
+    };
+
+    updateActiveSection();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
+  // Monitor scroll for "Back to top" button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const submitContact = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormStatus('success');
+    setTimeout(() => setFormStatus('idle'), 4000);
+  };
+
+  // Unique categories for Case Study filtering
+  const categories = ['All', ...Array.from(new Set(caseStudies.map((item) => item.category)))];
+
+  const filteredCaseStudies = selectedCategory === 'All'
+    ? caseStudies
+    : caseStudies.filter((item) => item.category === selectedCategory);
+
+  return (
+    <>
+      {/* ── Scroll Progress Line ── */}
+      <motion.div className="scroll-progress" style={{ scaleX }} />
+
+      {/* ── Fixed Premium Header ── */}
+      <header className="site-header">
+        <a className="brand" href="#home" aria-label="Nithin N home">
+          <span>N</span>
+          Nithin N
+        </a>
+        <nav aria-label="Primary navigation">
+          {navItems.map((item) => (
+            <a
+              key={item}
+              className={activeSection === item ? 'active' : ''}
+              href={`#${item}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveSection(item);
+                document.getElementById(item)?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{ position: 'relative', zIndex: 1 }}
+            >
+              {item}
+              {activeSection === item && (
+                <motion.span
+                  layoutId="activeNavBackground"
+                  className="active-pill-bg"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: 'var(--accent-soft)',
+                    borderRadius: 999,
+                    zIndex: -1,
+                  }}
+                  transition={{ type: 'spring' as const, stiffness: 380, damping: 30 }}
+                />
+              )}
+            </a>
+          ))}
+        </nav>
+      </header>
+
+      <main>
+        {/* ── Hero Section ── */}
+        <section id="home" className="hero section">
+          <div className="hero-content">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="eyebrow-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="eyebrow">Software Engineer Consultant</span>
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                >
+                  <Sparkles size={14} style={{ color: 'var(--accent)' }} />
+                </motion.div>
+              </div>
+              <h1>
+                Building reliable APIs, data-driven tools, and AI-ready product experiences.
+              </h1>
+              <p className="hero-copy">
+                I work across backend services, React interfaces, SQL data flows, Python analytics, technical SEO, and
+                AI-assisted WhatsApp systems with a focus on practical fixes that hold up in production.
+              </p>
+              <div className="hero-actions">
+                <a className="primary-action" href="#contact" onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                }}>
+                  Contact me <ArrowUpRight size={18} />
+                </a>
+                <a className="secondary-action" href={contact.github} target="_blank" rel="noreferrer">
+                  <Github size={18} /> GitHub
+                </a>
+                <a className="secondary-action" href={contact.linkedin} target="_blank" rel="noreferrer">
+                  <Linkedin size={18} /> LinkedIn
+                </a>
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="tool-strip"
+              aria-label="Core technical focus areas"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {toolbox.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <motion.span
+                    key={item.label}
+                    variants={cardVariants}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </motion.span>
+                );
+              })}
+            </motion.div>
+          </div>
+
+          <motion.figure
+            className="hero-visual"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}assets/image.jpg`}
+              alt="Profile of Nithin N"
+            />
+            <figcaption>
+              <span>NN</span>
+              <div>
+                <strong>Nithin N</strong>
+                <small>Backend | Python | Data Analysis | AI workflows</small>
+              </div>
+            </figcaption>
+          </motion.figure>
+        </section>
+
+        {/* ── About Section ── */}
+        <section id="about" className="section">
+          <SectionHeader
+            eyebrow="About"
+            title="A practical engineer with full-stack, Python, and data-analysis depth."
+            text="Computer Science Engineering graduate from Bengaluru with hands-on experience in backend development, software testing, data analysis, AI workflows, cloud services, and production debugging."
+          />
+          
+          <motion.div
+            className="specialty-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {specialties.map((item) => {
+              const Icon = item.icon;
+              return (
+                <motion.article
+                  className="specialty-card"
+                  key={item.title}
+                  variants={cardVariants}
+                  whileHover="hover"
+                >
+                  <Icon size={26} />
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </motion.article>
+              );
+            })}
+          </motion.div>
+
+          <motion.div
+            className="metrics-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {metrics.map((metric) => (
+              <motion.div
+                key={metric.label}
+                className="metric-card"
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <strong>{metric.value}</strong>
+                <span>{metric.label}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── Experience Section ── */}
+        <section id="experience" className="section">
+          <SectionHeader
+            eyebrow="Experience"
+            title="Production work across APIs, admin tools, SEO, data, and AI workflows."
+          />
+          
+          <div className="experience-list">
+            {experience.map((job, idx) => (
+              <motion.article
+                className="experience-card"
+                key={job.role}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-100px' }}
+                transition={{ duration: 0.6, delay: idx * 0.1 }}
+              >
+                <div>
+                  <span className="eyebrow" style={{ display: 'inline-block', marginBottom: '8px' }}>{job.period}</span>
+                  <h3>{job.role}</h3>
+                  <p className="company">
+                    <BriefcaseBusiness size={18} /> {job.company} | {job.location}
+                  </p>
+                </div>
+                <div>
+                  <p>{job.summary}</p>
+                  <ul>
+                    {job.bullets.map((bullet) => (
+                      <li key={bullet}>
+                        <CheckCircle2 size={18} />
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Projects Section ── */}
+        <section id="projects" className="section">
+          <SectionHeader
+            eyebrow="Projects"
+            title="Anonymized case studies from real delivery work."
+            text="These focus on outcomes, technologies, and engineering responsibility without exposing private information."
+          />
+
+          {/* Interactive Category Filtering Tabs */}
+          <div className="category-tabs" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '32px' }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`secondary-action ${selectedCategory === cat ? 'active' : ''}`}
+                style={{
+                  minHeight: '38px',
+                  padding: '0 16px',
+                  fontSize: '0.85rem',
+                  border: selectedCategory === cat ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  backgroundColor: selectedCategory === cat ? 'var(--accent-soft)' : 'var(--surface)',
+                  color: selectedCategory === cat ? 'var(--accent)' : 'var(--ink-secondary)',
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          
+          <motion.div
+            layout
+            className="case-grid"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredCaseStudies.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <motion.article
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    className="case-card"
+                    key={item.title}
+                    variants={cardVariants}
+                    whileHover="hover"
+                  >
+                    <div className="case-topline">
+                      <span>{item.category}</span>
+                      <Icon size={22} />
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.problem}</p>
+                    <strong>{item.result}</strong>
+                    <div className="stack-list">
+                      {item.stack.map((tech) => (
+                        <span key={tech}>{tech}</span>
+                      ))}
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
+
+          <div className="section-header" style={{ marginTop: '56px', marginBottom: '24px' }}>
+            <h3>Other Key Highlights</h3>
+          </div>
+
+          <motion.div
+            className="resume-projects"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {resumeProjects.map((project) => (
+              <motion.article
+                key={project.name}
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <h3>{project.name}</h3>
+                <p>{project.detail}</p>
+              </motion.article>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── Skills Section ── */}
+        <section id="skills" className="section">
+          <SectionHeader
+            eyebrow="Skills"
+            title="A balanced toolkit for product engineering and data-backed problem solving."
+          />
+          
+          <motion.div
+            className="skills-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {skillGroups.map((group) => (
+              <motion.article
+                className="skill-card"
+                key={group.title}
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <h3>{group.title}</h3>
+                <div>
+                  {group.skills.map((skill) => (
+                    <span key={skill}>{skill}</span>
+                  ))}
+                </div>
+              </motion.article>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── Certifications Section ── */}
+        <section id="certifications" className="section">
+          <SectionHeader eyebrow="Certifications" title="Cloud, data, AI, and professional readiness." />
+          
+          <motion.div
+            className="cert-list"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+          >
+            {certifications.map((certification) => (
+              <motion.article
+                key={certification}
+                variants={cardVariants}
+                whileHover="hover"
+              >
+                <Award size={20} />
+                <span>{certification}</span>
+              </motion.article>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ── Contact Section ── */}
+        <section id="contact" className="section contact-section">
+          <SectionHeader
+            eyebrow="Contact"
+            title="Let's talk about backend systems, data workflows, or full-stack product work."
+          />
+          
+          <div className="contact-layout">
+            <motion.div
+              className="contact-panel"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <a href={`mailto:${contact.email}`} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <Mail size={19} style={{ color: 'var(--accent)' }} />
+                {contact.email}
+              </a>
+
+              <a href={contact.linkedin} target="_blank" rel="noreferrer">
+                <Linkedin size={19} />
+                LinkedIn <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+              </a>
+              <a href={contact.github} target="_blank" rel="noreferrer">
+                <Github size={19} />
+                GitHub <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
+              </a>
+              <span>
+                <MapPin size={19} />
+                {contact.location}
+              </span>
+            </motion.div>
+
+            <motion.form
+              className="contact-form"
+              onSubmit={submitContact}
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <label>
+                Name
+                <input name="name" type="text" required />
+              </label>
+              
+              <label>
+                Email
+                <input name="email" type="email" required />
+              </label>
+              
+              <label>
+                Message
+                <textarea name="message" rows={5} required />
+              </label>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <button type="submit">
+                  Send message <Send size={18} />
+                </button>
+                {formStatus === 'success' && (
+                  <span style={{ color: 'var(--teal)', fontSize: '0.9rem', fontWeight: 600 }}>Message sent successfully!</span>
+                )}
+              </div>
+            </motion.form>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>&copy; {new Date().getFullYear()} Nithin N. Built with React, TypeScript & Framer Motion.</p>
+      </footer>
+
+      {/* ── Scroll to Top Button ── */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              zIndex: 90,
+              width: '46px',
+              height: '46px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-lg)',
+              cursor: 'pointer',
+              display: 'grid',
+              placeItems: 'center',
+              color: 'var(--accent)',
+            }}
+            whileHover={{ scale: 1.1, y: -2 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <ArrowUp size={20} />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export default App;
