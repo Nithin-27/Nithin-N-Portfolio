@@ -25,6 +25,7 @@ import {
   skillGroups,
   specialties,
   toolbox,
+  typedRoles,
 } from './data';
 
 // ── Motion Animation Variants ──
@@ -75,9 +76,14 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [typedRoleIndex, setTypedRoleIndex] = useState(0);
+  const [typedCharCount, setTypedCharCount] = useState(0);
+  const [isDeletingRole, setIsDeletingRole] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
+  const currentTypedRole = typedRoles[typedRoleIndex] ?? '';
+  const typedRoleText = currentTypedRole.slice(0, typedCharCount);
 
   // Handle active navigation section highlight based on scroll position
   useEffect(() => {
@@ -121,6 +127,31 @@ function App() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!typedRoles.length) return;
+
+    const isComplete = typedCharCount === currentTypedRole.length;
+    const isEmpty = typedCharCount === 0;
+    const delay = isComplete && !isDeletingRole ? 1200 : isDeletingRole ? 42 : 72;
+
+    const timeoutId = window.setTimeout(() => {
+      if (!isDeletingRole && isComplete) {
+        setIsDeletingRole(true);
+        return;
+      }
+
+      if (isDeletingRole && isEmpty) {
+        setIsDeletingRole(false);
+        setTypedRoleIndex((index) => (index + 1) % typedRoles.length);
+        return;
+      }
+
+      setTypedCharCount((count) => count + (isDeletingRole ? -1 : 1));
+    }, delay);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [currentTypedRole, isDeletingRole, typedCharCount]);
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -197,9 +228,14 @@ function App() {
                   <Sparkles size={14} style={{ color: 'var(--accent)' }} />
                 </motion.div>
               </div>
-              <h1>
-                Building reliable APIs, data-driven tools, and AI-ready product experiences.
+              <h1 className="hero-title">
+                Hello, I'm <span className="highlight">Nithin N</span>
               </h1>
+              <h2 className="typed-line" aria-label={`I'm a ${currentTypedRole}`}>
+                I'm a{' '}
+                <span className="typed-text">{typedRoleText}</span>
+                <span className="typing-cursor" aria-hidden="true" />
+              </h2>
               <p className="hero-copy">
                 I work across backend services, React interfaces, SQL data flows, Python analytics, technical SEO, and
                 AI-assisted WhatsApp systems with a focus on practical fixes that hold up in production.
