@@ -213,20 +213,6 @@ function App() {
               style={{ position: 'relative', zIndex: 1 }}
             >
               {item}
-              {activeSection === item && (
-                <motion.span
-                  layoutId="activeNavBackground"
-                  className="active-pill-bg"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    backgroundColor: 'var(--accent-soft)',
-                    borderRadius: 999,
-                    zIndex: -1,
-                  }}
-                  transition={{ type: 'spring' as const, stiffness: 380, damping: 30 }}
-                />
-              )}
             </a>
           ))}
         </nav>
@@ -501,16 +487,12 @@ function App() {
             ))}
           </div>
           
-          <motion.div
-            layout
-            className="case-grid"
-          >
-            <AnimatePresence mode="popLayout">
+          <motion.div className="case-grid">
+            <AnimatePresence>
               {filteredCaseStudies.map((item) => {
                 const Icon = item.icon;
                 return (
                   <motion.article
-                    layout
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
