@@ -12,7 +12,9 @@ import {
   Sparkles,
   Award,
   ExternalLink,
-  ArrowUp
+  ArrowUp,
+  Menu,
+  X
 } from 'lucide-react';
 import {
   caseStudies,
@@ -79,6 +81,7 @@ function App() {
   const [typedRoleIndex, setTypedRoleIndex] = useState(0);
   const [typedCharCount, setTypedCharCount] = useState(0);
   const [isDeletingRole, setIsDeletingRole] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
@@ -126,6 +129,24 @@ function App() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const closeMobileMenu = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+
+    const closeOnDesktop = () => {
+      if (window.innerWidth > 700) setIsMobileMenuOpen(false);
+    };
+
+    document.addEventListener('keydown', closeMobileMenu);
+    window.addEventListener('resize', closeOnDesktop);
+
+    return () => {
+      document.removeEventListener('keydown', closeMobileMenu);
+      window.removeEventListener('resize', closeOnDesktop);
+    };
   }, []);
 
   useEffect(() => {
@@ -177,12 +198,13 @@ function App() {
           <span>N</span>
           Nithin N
         </a>
-        <nav aria-label="Primary navigation">
+        <nav className="desktop-nav" aria-label="Primary navigation">
           {navItems.map((item) => (
             <a
               key={item}
               className={activeSection === item ? 'active' : ''}
               href={`#${item}`}
+              aria-current={activeSection === item ? 'page' : undefined}
               onClick={(e) => {
                 e.preventDefault();
                 setActiveSection(item);
@@ -208,6 +230,62 @@ function App() {
             </a>
           ))}
         </nav>
+
+        <button
+          className="mobile-nav-toggle"
+          type="button"
+          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation"
+          onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={isMobileMenuOpen ? 'close' : 'menu'}
+              initial={{ opacity: 0, rotate: -45, scale: 0.7 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 45, scale: 0.7 }}
+              transition={{ duration: 0.18 }}
+            >
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </motion.span>
+          </AnimatePresence>
+        </button>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.nav
+              id="mobile-navigation"
+              className="mobile-nav"
+              aria-label="Mobile navigation"
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {navItems.map((item, index) => (
+                <motion.a
+                  key={item}
+                  className={activeSection === item ? 'active' : ''}
+                  href={`#${item}`}
+                  aria-current={activeSection === item ? 'page' : undefined}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.025 }}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setActiveSection(item);
+                    setIsMobileMenuOpen(false);
+                    document.getElementById(item)?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  {item}
+                </motion.a>
+              ))}
+            </motion.nav>
+          )}
+        </AnimatePresence>
       </header>
 
       <main>
