@@ -66,10 +66,11 @@ body::before {
   inset: 0;
   z-index: -3;
   background:
-    linear-gradient(105deg, rgba(250, 253, 248, 0.42) 0%, rgba(233, 247, 245, 0.22) 42%, rgba(8, 30, 52, 0.2) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(228, 242, 232, 0.18) 58%, rgba(9, 25, 38, 0.18)),
+    linear-gradient(105deg, rgba(245, 250, 246, 0.18) 0%, rgba(208, 232, 232, 0.12) 40%, rgba(7, 24, 40, 0.4) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(198, 224, 222, 0.08) 54%, rgba(7, 21, 34, 0.34)),
     url('/assets/image_3.png') center / cover no-repeat;
   transform: scale(1.03);
+  filter: brightness(0.84) contrast(1.14) saturate(0.92);
   animation: background-pan 24s ease-in-out infinite alternate;
 }
 
@@ -80,7 +81,7 @@ body::after {
   z-index: -2;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(245, 255, 247, 0.08) 54%, rgba(7, 22, 35, 0.12)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(228, 240, 234, 0.04) 46%, rgba(7, 22, 35, 0.2)),
     linear-gradient(rgba(16, 36, 58, 0.018) 1px, transparent 1px),
     linear-gradient(90deg, rgba(16, 36, 58, 0.014) 1px, transparent 1px);
   background-size: auto, 96px 96px, 96px 96px;
