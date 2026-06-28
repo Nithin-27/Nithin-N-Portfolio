@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   BriefcaseBusiness,
   CheckCircle2,
+  Download,
   Github,
   Linkedin,
   Mail,
@@ -105,6 +106,8 @@ function App() {
   const scaleX = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
   const currentTypedRole = typedRoles[typedRoleIndex] ?? '';
   const typedRoleText = currentTypedRole.slice(0, typedCharCount);
+  const resumeDriveFileId = '18i97XRyRwfxVWe4XXqLiz8uUwl36-kOo';
+  const resumeUrl = `https://drive.google.com/file/d/${resumeDriveFileId}/view?usp=sharing`;
 
   // Handle active navigation section highlight based on scroll position
   useEffect(() => {
@@ -358,11 +361,14 @@ function App() {
                 AI-assisted WhatsApp systems with a focus on practical fixes that hold up in production.
               </p>
               <div className="hero-actions">
-                <a className="primary-action" href="#contact" onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-                }}>
-                  Contact me <ArrowUpRight size={18} />
+                <a
+                  className="primary-action"
+                  href={resumeUrl}
+                  aria-label="Download resume"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download Resume <Download size={18} />
                 </a>
                 <a className="secondary-action" href={contact.github} target="_blank" rel="noreferrer">
                   <Github size={18} /> GitHub
@@ -526,7 +532,7 @@ function App() {
           <SectionHeader
             eyebrow="Projects"
             title="Anonymized case studies from real delivery work."
-            text="These focus on outcomes, technologies, and engineering responsibility without exposing private information."
+            text="These focus on outcomes, technologies, and engineering responsibility."
           />
 
           {/* Interactive Category Filtering Tabs */}
