@@ -368,7 +368,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Download Resume <Download size={18} />
+                  View/Download Resume <Download size={18} />
                 </a>
                 <a className="secondary-action" href={contact.github} target="_blank" rel="noreferrer">
                   <Github size={18} /> GitHub
