@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import {
   ArrowUpRight,
@@ -57,7 +57,17 @@ const cardVariants = {
   }
 } as const;
 
-function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+function SectionHeader({
+  eyebrow,
+  title,
+  text,
+  textClassName,
+}: {
+  eyebrow: string;
+  title: string;
+  text?: ReactNode;
+  textClassName?: string;
+}) {
   return (
     <motion.div
       className="section-header"
@@ -68,16 +78,24 @@ function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: strin
     >
       <span className="eyebrow">{eyebrow}</span>
       <h2>{title}</h2>
-      {text ? <p>{text}</p> : null}
+      {text ? <p className={textClassName}>{text}</p> : null}
     </motion.div>
   );
+}
+
+function splitCertification(certification: string) {
+  const [title, issuer] = certification.split(' — ');
+  return {
+    title: title.trim(),
+    issuer: issuer?.trim(),
+  };
 }
 
 function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [typedRoleIndex, setTypedRoleIndex] = useState(0);
   const [typedCharCount, setTypedCharCount] = useState(0);
   const [isDeletingRole, setIsDeletingRole] = useState(false);
@@ -176,8 +194,43 @@ function App() {
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormStatus('success');
-    setTimeout(() => setFormStatus('idle'), 4000);
+    const form = event.currentTarget;
+    const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+
+    if (!accessKey) {
+      setFormStatus('error');
+      window.setTimeout(() => setFormStatus('idle'), 4000);
+      return;
+    }
+
+    setFormStatus('sending');
+
+    try {
+      const formData = new FormData(form);
+      formData.append('access_key', accessKey);
+      formData.append('from_name', 'Nithin Portfolio');
+
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error('Web3Forms submission failed');
+      }
+
+      form.reset();
+      setFormStatus('success');
+    } catch {
+      setFormStatus('error');
+    } finally {
+      window.setTimeout(() => setFormStatus('idle'), 4000);
+    }
   };
 
   // Unique categories for Case Study filtering
@@ -370,7 +423,17 @@ function App() {
           <SectionHeader
             eyebrow="About"
             title="A practical engineer with full-stack, Python, and data-analysis depth."
-            text="Computer Science Engineering graduate from Bengaluru with hands-on experience in backend development, software testing, data analysis, AI workflows, cloud services, and production debugging."
+            textClassName="about-intro-card"
+            text={
+              <>
+                <span className="about-intro-label">Profile Summary</span>
+                <span className="about-intro-copy">
+                  Computer Science Engineering graduate with hands-on experience in{' '}
+                  <strong>backend development</strong>, <strong>software testing</strong>,{' '}
+                  <strong>data analysis</strong>, AI workflows, cloud services, and production debugging.
+                </span>
+              </>
+            }
           />
           
           <motion.div
@@ -587,16 +650,23 @@ function App() {
             whileInView="visible"
             viewport={{ once: true, margin: '-100px' }}
           >
-            {certifications.map((certification) => (
-              <motion.article
-                key={certification}
-                variants={cardVariants}
-                whileHover="hover"
-              >
-                <Award size={20} />
-                <span>{certification}</span>
-              </motion.article>
-            ))}
+            {certifications.map((certification) => {
+              const { title, issuer } = splitCertification(certification);
+
+              return (
+                <motion.article
+                  key={certification}
+                  variants={cardVariants}
+                  whileHover="hover"
+                >
+                  <Award size={20} />
+                  <div className="cert-copy">
+                    <strong>{title}</strong>
+                    {issuer ? <small>{issuer}</small> : null}
+                  </div>
+                </motion.article>
+              );
+            })}
           </motion.div>
         </section>
 
@@ -642,6 +712,8 @@ function App() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
+              <input name="botcheck" type="checkbox" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+
               <label>
                 Name
                 <input name="name" type="text" required />
@@ -651,6 +723,11 @@ function App() {
                 Email
                 <input name="email" type="email" required />
               </label>
+
+              <label>
+                Subject
+                <input name="subject" type="text" required />
+              </label>
               
               <label>
                 Message
@@ -658,11 +735,16 @@ function App() {
               </label>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button type="submit">
-                  Send message <Send size={18} />
+                <button type="submit" disabled={formStatus === 'sending'}>
+                  {formStatus === 'sending' ? 'Sending...' : 'Send message'} <Send size={18} />
                 </button>
                 {formStatus === 'success' && (
                   <span style={{ color: 'var(--teal)', fontSize: '0.9rem', fontWeight: 600 }}>Message sent successfully!</span>
+                )}
+                {formStatus === 'error' && (
+                  <span style={{ color: '#b56f62', fontSize: '0.9rem', fontWeight: 600 }}>
+                    Message failed. Check your Web3Forms key and try again.
+                  </span>
                 )}
               </div>
             </motion.form>
